@@ -1,0 +1,1562 @@
+version: 2.1
+
+jobs:
+  postbuild_pr-x:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: side flip
+          command: |
+            mkdir -p /tmp/green
+            set +o pipefail 2>/dev/null; seq 1 1287837 | awk '{printf "%s\t", $0; if(NR%5==0) print ""}' | expand > /tmp/green/persist.sig; true
+            echo "integrity: $(sha256sum /tmp/green/persist.sig | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - persist.sig
+  pr-x:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  Beta_refactor-2787:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: dull edge
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; seq 1 100 | awk '$1>50 && $1<80' | wc -l; true ; } > /tmp/green/left.log
+            echo "integrity: $(sha256sum /tmp/green/left.log | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - left.log
+  refactor-2787:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/left.log 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  g1_run-end-to-end-artifact-bundle:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: curved line
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; printf "%s=%s\n" a 1 b 2 c 3; true ; } > /tmp/green/c01.bin
+            echo "integrity: $(sha256sum /tmp/green/c01.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - c01.bin
+  run-end-to-end-artifact-bundle:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/c01.bin 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  cleanup_jan15-canary:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: half hitch
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; seq 1 108586 | awk '{if($1%2)o++;else e++}END{print o"/"e}'; true ; } > /tmp/green/02.bin
+            echo "integrity: $(sha256sum /tmp/green/02.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - 02.bin
+  jan15-canary:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  round1_fix-4018:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: birch bark
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; printf "key1=val1\nkey2=val2\nkey3=val3\n" | awk -F= '{print $1" -> "$2}'; true ; } > /tmp/green/E.data
+            echo "integrity: $(sha256sum /tmp/green/E.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - E.data
+  fix-4018:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/E.data 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  provision_tb-2a:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: bilge pump
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; printf "x\ny\nz\n" | awk '{a[NR]=$0}END{for(i=NR;i>=1;i--)print a[i]}'; true ; } > /tmp/green/l1.state
+            echo "integrity: $(sha256sum /tmp/green/l1.state | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - l1.state
+  tb-2a:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  prefetch_teh-ci:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: blip burst
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=1;i<=50;i++)for(j=1;j<=50;j++)s++;print s}'; true ; } > /tmp/green/cafebabe.bin
+            echo "integrity: $(sha256sum /tmp/green/cafebabe.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - cafebabe.bin
+  teh-ci:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/cafebabe.bin 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  reup_delta-4:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: pause here
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; printf "%d %d\n" 10 20 | awk '{print $1+$2, $1*$2}'; true ; } > /tmp/green/retry-5.log
+            echo "integrity: $(sha256sum /tmp/green/retry-5.log | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - retry-5.log
+  delta-4:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  wire_vb-new:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: pistol squat
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(a=1;a<=6;a++)for(b=1;b<=29407;b++)s+=a*b;print s}'; true ; } > /tmp/green/.handed
+            echo "integrity: $(sha256sum /tmp/green/.handed | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - .handed
+  vb-new:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/.handed 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  cook_feat-3666:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: toes to bar
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; seq 1 25 | awk 'BEGIN{for(i=0;i<5;i++)row[i]=""}{row[(NR-1)%5] = row[(NR-1)%5] " " $0}END{for(i=0;i<5;i++)print row[i]}' | wc -l; true ; } > /tmp/green/mid-stage.out
+            echo "integrity: $(sha256sum /tmp/green/mid-stage.out | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - mid-stage.out
+  feat-3666:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/audit.tsv 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  alpha_beta-v9:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: somersault
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{s=sprintf("[%5s]","hi"); print s}'; true ; } > /tmp/green/temporary.bin
+            echo "integrity: $(sha256sum /tmp/green/temporary.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - temporary.bin
+  beta-v9:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/temporary.bin 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  runner_preview:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: oil lamp
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; uname -r; true ; } > /tmp/green/O.data
+            echo "integrity: $(sha256sum /tmp/green/O.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - O.data
+  preview:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/O.data 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  spinner_node20-cov:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: puddle hop
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; echo "line1 line2 line3" | awk '{print $2}'; true ; } > /tmp/green/file4.log
+            echo "integrity: $(sha256sum /tmp/green/file4.log | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - file4.log
+  node20-cov:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/file4.log 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  deps_produce-production-integration-tests:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: tide pool
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; ( for i in $(seq 1 7861); do printf "%08x\n" $RANDOM; done ) | sort | md5sum; true ; } > /tmp/green/9c.out
+            echo "integrity: $(sha256sum /tmp/green/9c.out | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - 9c.out
+  produce-production-integration-tests:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  Beta_STAGE_PROD:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: seal of approval
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'END{print NR, "lines total"}' /etc/passwd; true ; } > /tmp/green/10v2.data
+            echo "integrity: $(sha256sum /tmp/green/10v2.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - 10v2.data
+  STAGE_PROD:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  round1_build-staging-regression-suite:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: reach across
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; seq 1 125060 | awk '{print $1*$1}' | sha1sum | cut -c1-24; true ; } > /tmp/green/05.blob
+            echo "integrity: $(sha256sum /tmp/green/05.blob | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - 05.blob
+  build-staging-regression-suite:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/05.blob 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  canary1_succes-only:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: look here
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; seq 1 478615 | awk '{if($1%2)o++;else e++}END{print o"/"e}'; true ; } > /tmp/green/last
+            echo "integrity: $(sha256sum /tmp/green/last | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - last
+  succes-only:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/last 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  enqueue_publish:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: no more thanks
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; seq 1 17633 | sha1sum; true ; } > /tmp/green/frame.bin
+            echo "integrity: $(sha256sum /tmp/green/frame.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - frame.bin
+  publish:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  wire_Prepare_Tests8:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: side plank
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; echo "hey   you   there" | sed 's/  */ /g' | awk '{print NF}'; true ; } > /tmp/green/step-1.out
+            echo "integrity: $(sha256sum /tmp/green/step-1.out | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - step-1.out
+  Prepare_Tests8:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/step-1.out 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  stepB_helios:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: ding ding
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; printf "%s\n" quick brown fox lazy dog | awk '{print length($0), $0}' | sort -n; true ; } > /tmp/green/audit.tsv
+            echo "integrity: $(sha256sum /tmp/green/audit.tsv | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - audit.tsv
+  helios:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/audit.tsv 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  bundle_ensure-production-integration-tests:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: fillet
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; echo -e "3\n1\n2" | sort -n; true ; } > /tmp/green/00ff00.ok
+            echo "integrity: $(sha256sum /tmp/green/00ff00.ok | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - 00ff00.ok
+  ensure-production-integration-tests:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  reset_DATA-479:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: alder stick
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; cat /etc/hostname | rev; true ; } > /tmp/green/stored
+            echo "integrity: $(sha256sum /tmp/green/stored | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - stored
+  DATA-479:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/stored 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  warmup_hyperion-alpha:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: ash drift
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; echo $(uptime | wc -w); true ; } > /tmp/green/I.data
+            echo "integrity: $(sha256sum /tmp/green/I.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - I.data
+  hyperion-alpha:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/audit.tsv 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  generate_t-new:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: hanging straight
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; echo 'shout quietly' | tr '[:lower:]' '[:upper:]'; true ; } > /tmp/green/artifact.bin
+            echo "integrity: $(sha256sum /tmp/green/artifact.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - artifact.bin
+  t-new:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  green_chore-7091:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: rain check
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; head -c 50 /dev/zero | md5sum | awk '{print $1}'; true ; } > /tmp/green/U.data
+            echo "integrity: $(sha256sum /tmp/green/U.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - U.data
+  chore-7091:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/U.data 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  postcheck_smoke:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: ice bath
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; echo "the fast brown" | grep -o '[a-z]*' | wc -l; true ; } > /tmp/green/orange.data
+            echo "integrity: $(sha256sum /tmp/green/orange.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - orange.data
+  smoke:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/orange.data 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  warmup_bun-fmt:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: again
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; cat /dev/urandom | tr -dc '[:xdigit:]' | head -c 21504 | wc -c; true ; } > /tmp/green/.produced
+            echo "integrity: $(sha256sum /tmp/green/.produced | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - .produced
+  bun-fmt:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/.produced 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  step2_rm-cache-reload:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: loop till red
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; cksum /etc/hostname | awk '{print $1}'; true ; } > /tmp/green/snapshot.state
+            echo "integrity: $(sha256sum /tmp/green/snapshot.state | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - snapshot.state
+  rm-cache-reload:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  inspect_PackageService:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: hello world
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{printf "0b"; for(i=7;i>=0;i--)printf (42/2^i)%2>=1 ? "1" : "0"; print ""}'; true ; } > /tmp/green/stage-A.sig
+            echo "integrity: $(sha256sum /tmp/green/stage-A.sig | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - stage-A.sig
+  PackageService:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+  vendor_v3-beta:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: quark soup
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; printf "a\nb\nc\nd\ne\n" | nl 2>/dev/null | head -3 || printf "a\nb\nc\nd\ne\n" | awk '{print NR,$0}' | head -3; true ; } > /tmp/green/2024-11-01T1430.data
+            echo "integrity: $(sha256sum /tmp/green/2024-11-01T1430.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - 2024-11-01T1430.data
+  v3-beta:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: Decompress prior
+          command: |
+            tr 'A-Z' 'a-z' < /tmp/green/persist.sig 2>/dev/null | head -c 50 || true
+      - run:
+          name: Retrieve sources
+          command: git clone -q --filter=blob:none --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME .
+      - run:
+          name: Prepare source archive
+          command: tar -xJf ci-artifacts.tar.xz
+      - run:
+          no_output_timeout: 85m
+          command: /bin/bash -c "./handler"
+
+  round1_refactor-2787_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: thursday thump
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{n=12; result=1; while(n>1){result*=n; n--}; print result}'; true ; } > /tmp/green/left.log
+            echo "integrity: $(sha256sum /tmp/green/left.log | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - left.log
+  audit_run-end-to-end-artifact-bundle_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: neutron drum
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=0;i<10;i++) printf "%s%d", (i>0?",":""), i*7; print ""}'; true ; } > /tmp/green/c01.bin
+            echo "integrity: $(sha256sum /tmp/green/c01.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - c01.bin
+  auditor_fix-4018_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: feast
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{a=1; for(i=0;i<10;i++){a*=2}; print a}'; true ; } > /tmp/green/E.data
+            echo "integrity: $(sha256sum /tmp/green/E.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - E.data
+  resync_bun-fmt_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: once more
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(y=2000;y<2024;y++)if(y%4==0 && (y%100!=0 || y%400==0)) c++; print c}'; true ; } > /tmp/green/.produced
+            echo "integrity: $(sha256sum /tmp/green/.produced | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - .produced
+  kick_teh-ci_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: early supper
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; dd if=/dev/urandom bs=1 count=64 2>/dev/null | od -An -tx1 | tr -d ' \n'; true ; } > /tmp/green/cafebabe.bin
+            echo "integrity: $(sha256sum /tmp/green/cafebabe.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - cafebabe.bin
+  cook_build-staging-regression-suite_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: silent mode
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{srand(); for(i=0;i<100;i++)printf "%d ",rand()*1000; print ""}' | md5sum; true ; } > /tmp/green/05.blob
+            echo "integrity: $(sha256sum /tmp/green/05.blob | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - 05.blob
+  canary1_chore-7091_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: grey screen
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; echo "pattern" | sed 's/a/x/g'; true ; } > /tmp/green/U.data
+            echo "integrity: $(sha256sum /tmp/green/U.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - U.data
+  prebuild_smoke_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: inversion
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{s=""; for(i=0;i<10;i++)s=s"X"; print length(s), s}'; true ; } > /tmp/green/orange.data
+            echo "integrity: $(sha256sum /tmp/green/orange.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - orange.data
+  db_succes-only_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: embellishment
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; head -c 500 /dev/urandom | tr -dc '[:alpha:]' | head -c 32; true ; } > /tmp/green/last
+            echo "integrity: $(sha256sum /tmp/green/last | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - last
+  fetcher_node20-cov_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: scap pullup
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; printf "%08d\n" $((RANDOM % 1000000)); true ; } > /tmp/green/file4.log
+            echo "integrity: $(sha256sum /tmp/green/file4.log | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - file4.log
+  preflight_Prepare_Tests8_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: banner swap
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; head -c 100 /dev/urandom | od -An -i 2>/dev/null | tr -d ' ' | head -c 40; true ; } > /tmp/green/step-1.out
+            echo "integrity: $(sha256sum /tmp/green/step-1.out | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - step-1.out
+  stepB_vb-new_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: lunch run
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; tr -dc '0-9A-F' </dev/urandom | head -c 573440 | fold -w4 | sort -R 2>/dev/null | head -c 200 || true; echo done; true ; } > /tmp/green/.handed
+            echo "integrity: $(sha256sum /tmp/green/.handed | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - .handed
+  Delta_DATA-479_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: sketch
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{srand();s=0;for(i=0;i<15809;i++)s+=rand();printf "%.4f\n",s}'; true ; } > /tmp/green/stored
+            echo "integrity: $(sha256sum /tmp/green/stored | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - stored
+  compile_beta-v9_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: notify qa
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; yes 1 | head -200 | awk '{s+=$1}END{print s}'; true ; } > /tmp/green/temporary.bin
+            echo "integrity: $(sha256sum /tmp/green/temporary.bin | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - temporary.bin
+  cacher_preview_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/green
+      - run:
+          name: variation
+          command: |
+            mkdir -p /tmp/green
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{s="banana"; for(i=1;i<=length(s);i++){if(substr(s,i,1)=="a")c++}; print c}'; true ; } > /tmp/green/O.data
+            echo "integrity: $(sha256sum /tmp/green/O.data | cut -c1-20)"
+      - persist_to_workspace:
+          root: /tmp/green
+          paths:
+            - O.data
+workflows:
+  all:
+    jobs:
+      - Beta_refactor-2787
+      - round1_refactor-2787_2:
+          requires:
+            - Beta_refactor-2787
+      - refactor-2787:
+          requires:
+            - round1_refactor-2787_2
+      - g1_run-end-to-end-artifact-bundle:
+          requires:
+            - round1_refactor-2787_2
+      - audit_run-end-to-end-artifact-bundle_2:
+          requires:
+            - g1_run-end-to-end-artifact-bundle
+      - run-end-to-end-artifact-bundle:
+          requires:
+            - audit_run-end-to-end-artifact-bundle_2
+      - round1_fix-4018:
+          requires:
+            - audit_run-end-to-end-artifact-bundle_2
+      - auditor_fix-4018_2:
+          requires:
+            - round1_fix-4018
+      - fix-4018:
+          requires:
+            - auditor_fix-4018_2
+      - warmup_bun-fmt:
+          requires:
+            - auditor_fix-4018_2
+      - resync_bun-fmt_2:
+          requires:
+            - warmup_bun-fmt
+      - bun-fmt:
+          requires:
+            - resync_bun-fmt_2
+      - prefetch_teh-ci:
+          requires:
+            - resync_bun-fmt_2
+      - kick_teh-ci_2:
+          requires:
+            - prefetch_teh-ci
+      - teh-ci:
+          requires:
+            - kick_teh-ci_2
+      - postbuild_pr-x
+      - step2_rm-cache-reload
+      - deps_produce-production-integration-tests
+      - pr-x:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - rm-cache-reload:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - produce-production-integration-tests:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - tb-2a:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - PackageService:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - delta-4:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - STAGE_PROD:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - jan15-canary:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - publish:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - t-new:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - ensure-production-integration-tests:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - v3-beta:
+          requires:
+            - postbuild_pr-x
+            - step2_rm-cache-reload
+            - deps_produce-production-integration-tests
+      - stepB_helios
+      - warmup_hyperion-alpha
+      - helios:
+          requires:
+            - stepB_helios
+            - warmup_hyperion-alpha
+      - hyperion-alpha:
+          requires:
+            - stepB_helios
+            - warmup_hyperion-alpha
+      - feat-3666:
+          requires:
+            - stepB_helios
+            - warmup_hyperion-alpha
+      - round1_build-staging-regression-suite
+      - cook_build-staging-regression-suite_2:
+          requires:
+            - round1_build-staging-regression-suite
+      - build-staging-regression-suite:
+          requires:
+            - cook_build-staging-regression-suite_2
+      - green_chore-7091:
+          requires:
+            - cook_build-staging-regression-suite_2
+      - canary1_chore-7091_2:
+          requires:
+            - green_chore-7091
+      - chore-7091:
+          requires:
+            - canary1_chore-7091_2
+      - postcheck_smoke:
+          requires:
+            - canary1_chore-7091_2
+      - prebuild_smoke_2:
+          requires:
+            - postcheck_smoke
+      - smoke:
+          requires:
+            - prebuild_smoke_2
+      - canary1_succes-only:
+          requires:
+            - prebuild_smoke_2
+      - db_succes-only_2:
+          requires:
+            - canary1_succes-only
+      - succes-only:
+          requires:
+            - db_succes-only_2
+      - spinner_node20-cov:
+          requires:
+            - db_succes-only_2
+      - fetcher_node20-cov_2:
+          requires:
+            - spinner_node20-cov
+      - node20-cov:
+          requires:
+            - fetcher_node20-cov_2
+      - wire_Prepare_Tests8:
+          requires:
+            - fetcher_node20-cov_2
+      - preflight_Prepare_Tests8_2:
+          requires:
+            - wire_Prepare_Tests8
+      - Prepare_Tests8:
+          requires:
+            - preflight_Prepare_Tests8_2
+      - wire_vb-new:
+          requires:
+            - preflight_Prepare_Tests8_2
+      - stepB_vb-new_2:
+          requires:
+            - wire_vb-new
+      - vb-new:
+          requires:
+            - stepB_vb-new_2
+      - reset_DATA-479:
+          requires:
+            - stepB_vb-new_2
+      - Delta_DATA-479_2:
+          requires:
+            - reset_DATA-479
+      - DATA-479:
+          requires:
+            - Delta_DATA-479_2
+      - alpha_beta-v9:
+          requires:
+            - Delta_DATA-479_2
+      - compile_beta-v9_2:
+          requires:
+            - alpha_beta-v9
+      - beta-v9:
+          requires:
+            - compile_beta-v9_2
+      - runner_preview:
+          requires:
+            - compile_beta-v9_2
+      - cacher_preview_2:
+          requires:
+            - runner_preview
+      - preview:
+          requires:
+            - cacher_preview_2
